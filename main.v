@@ -127,7 +127,7 @@ module main(
     reg[31:0] ID_EX_PC;
     reg[31:0] ID_EX_Read_data1, ID_EX_Read_data2;
     reg signed [31:0] ID_EX_imm;
-    reg[5:0] ID_EX_Write_register, ID_EX_Read_register1, ID_EX_Read_register2;
+    reg[4:0] ID_EX_Write_register, ID_EX_Read_register1, ID_EX_Read_register2;
     reg ID_EX_RegWrite, ID_EX_ALUsrc, ID_EX_MemWrite, ID_EX_MemtoReg, ID_EX_MemRead, ID_EX_Branch, ID_EX_JumpJalr, ID_EX_RegDest, ID_EX_ALUsrcLui, ID_EX_ALUsrcAuipc;
     reg[9:0] ID_EX_funct;
     reg [2:0] ID_EX_DMType;
@@ -138,9 +138,9 @@ module main(
             ID_EX_Read_data2 <= 32'b0;
             ID_EX_imm <= 32'b0;
             ID_EX_PC <= 32'b0;
-            ID_EX_Write_register <= 6'b0;
-            ID_EX_Read_register1 <= 6'b0;
-            ID_EX_Read_register2 <= 6'b0;
+            ID_EX_Write_register <= 5'b0;
+            ID_EX_Read_register1 <= 5'b0;
+            ID_EX_Read_register2 <= 5'b0;
             ID_EX_RegWrite <= 1'b0;
             ID_EX_ALUsrc <= 1'b0;
             ID_EX_MemWrite <= 1'b0;
@@ -299,7 +299,7 @@ module main(
     assign ID_EX_Flush = ((jump_taken && ID_EX_Branch) || ID_EX_JumpJalr) ? 1 : 0;
     reg [31:0] EX_MEM_PC;
     reg [31:0] EX_MEM_ALUresult, EX_MEM_Read_data2;
-    reg [5:0] EX_MEM_Write_register;
+    reg [4:0] EX_MEM_Write_register;
     reg EX_MEM_RegWrite, EX_MEM_MemWrite, EX_MEM_MemtoReg, EX_MEM_MemRead, EX_MEM_RegDest;
     reg [2:0] EX_MEM_DMType;
     always @(posedge clk_1s or negedge rstn) begin
@@ -307,7 +307,7 @@ module main(
             EX_MEM_PC <= 32'b0;
             EX_MEM_ALUresult <= 32'b0;
             EX_MEM_Read_data2 <= 32'b0;
-            EX_MEM_Write_register <= 6'b0;
+            EX_MEM_Write_register <= 5'b0;
             EX_MEM_RegWrite <= 0;
             EX_MEM_MemWrite <= 0;
             EX_MEM_MemtoReg <= 0;
@@ -354,14 +354,14 @@ module main(
     );
     reg [31:0] MEM_WB_PC;
     reg [31:0] MEM_WB_ALUresult, MEM_WB_Read_data;
-    reg [5:0] MEM_WB_Write_register;
+    reg [4:0] MEM_WB_Write_register;
     reg MEM_WB_RegWrite, MEM_WB_MemtoReg, MEM_WB_RegDest;
     always @(posedge clk_1s or negedge rstn) begin
         if (!rstn) begin
             MEM_WB_PC <= 32'b0;
             MEM_WB_ALUresult <= 32'b0;
             MEM_WB_Read_data <= 32'b0;
-            MEM_WB_Write_register <= 6'b0;
+            MEM_WB_Write_register <= 5'b0;
             MEM_WB_RegWrite <= 1'b0;
             MEM_WB_MemtoReg <= 1'b0;
             MEM_WB_RegDest <= 1'b0;

@@ -1,22 +1,45 @@
-// Updated control.v to output zero signals for stage 1 basic pipeline
-
 module control(
-    input wire [5:0] opcode,
-    output reg [1:0] reg_write,
-    output reg [1:0] mem_read,
-    output reg [1:0] mem_write,
-    output reg [1:0] alu_op
+    input wire [6:0] opcode,
+    input wire Control_Flush,
+    output reg RegWrite,
+    output reg ALUsrc,
+    output reg MemWrite,
+    output reg MemtoReg,
+    output reg MemRead,
+    output reg Branch,
+    output reg JumpJal,
+    output reg JumpJalr,
+    output reg RegDest,
+    output reg ALUsrcLui,
+    output reg ALUsrcAuipc,
+    output reg [1:0] ALUOp
 );
 
     always @(*) begin
-        case (opcode)
-            // Add your opcode handling here
-            default: begin
-                reg_write = 2'b00;  // Every signal to zero for stage 1
-                mem_read = 2'b00;
-                mem_write = 2'b00;
-                alu_op = 2'b00;
-            end
-        endcase
+        RegWrite = 1'b0;
+        ALUsrc = 1'b0;
+        MemWrite = 1'b0;
+        MemtoReg = 1'b0;
+        MemRead = 1'b0;
+        Branch = 1'b0;
+        JumpJal = 1'b0;
+        JumpJalr = 1'b0;
+        RegDest = 1'b0;
+        ALUsrcLui = 1'b0;
+        ALUsrcAuipc = 1'b0;
+        ALUOp = 2'b00;
+
+        if (!Control_Flush) begin
+            case (opcode)
+                7'b0010011: begin // I-type ALU
+                    RegWrite = 1'b1;
+                    ALUsrc = 1'b1;
+                    ALUOp = 2'b11;
+                end
+                default: begin
+                    RegWrite = 1'b0;
+                end
+            endcase
+        end
     end
 endmodule
