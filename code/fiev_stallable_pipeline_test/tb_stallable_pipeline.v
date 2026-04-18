@@ -7,12 +7,12 @@ module tb_stallable_pipeline;
     parameter WIDTH = `PR_DATA_WIDTH;
 
     // 信号声明
-    reg         	    clk;
-    reg         	    rst;
-    reg         	    validin;
-    reg [WIDTH-1:0]     datain;
-    reg         	    out_allow;
-    wire        	    validout;
+    reg         	clk;
+    reg         	rst;
+    reg         	validin;
+    reg [WIDTH-1:0] 	datain;
+    reg         	out_allow;
+    wire        	validout;
     wire [WIDTH-1:0] 	dataout;
 
     //---------------------------------------------------------------------
@@ -28,13 +28,14 @@ module tb_stallable_pipeline;
         .dataout(dataout)
     );
 
-    always begin
-    	forever #5 clk = ~clk;
-        if (clk == 1)
-        begin
-            counter = counter + 1;
-        end
-    end
+ initial begin
+    clk = 0;
+    forever #5 clk = ~clk;
+end
+
+always @(posedge clk) begin
+    counter = counter + 1;
+end
 
     integer counter = 0;
     
@@ -44,10 +45,10 @@ module tb_stallable_pipeline;
         rst = 1'b1;
         validin = 1'b0;
         datain = `PR_DATA_WIDTH'b0;
-        out_allow = 1'b0;
+        out_allow = 1'b1;
 
 	    // 打开 VCD 波形记录
-        $dumpfile("sp5.vcd");
+        $dumpfile("sp.vcd");
         $dumpvars(0, tb_stallable_pipeline);
 
         #10 
@@ -59,11 +60,9 @@ module tb_stallable_pipeline;
         //datain = `PR_DATA_WIDTH'hDEADBEEFDEADBEEFDEADBEEF0;
 	    datain = {`PR_DATA_WIDTH{1'b1}};
         validin = 1'b1;
-        #10 datain = `PR_DATA_WIDTH'hDEADBEEFDEADBEEFDEADBEEF0;
         #10 validin = 1'b0;
 
         #40; // 等待数据通过所有阶段
-        #10 out_allow = 1'b1;
 
         //--------------------------------------------------
         // 场景二：out_allow 被拉低，阻塞 stage3
