@@ -1,65 +1,112 @@
+`timescale 1ns / 1ps
 
-// testbench for simulation
-module sccomp_tb();
-    
-   reg  clk, rstn;
-   reg  [4:0] reg_sel;
-   wire [31:0] reg_data;
-    
-// instantiation of sccomp    
-   sccomp U_SCCOMP(
-      .clk(clk), .rstn(rstn), .reg_sel(reg_sel), .reg_data(reg_data) 
-   );
+module main_tb();
 
-  	integer foutput;
-  	integer counter = 0;
-   
-   initial begin
-      $readmemh( "Test_8_Instr.dat" , U_SCCOMP.U_IM.ROM); // load instructions into instruction memory
-//    $monitor("PC = 0x%8X, instr = 0x%8X", U_SCCOMP.PC, U_SCCOMP.instr); // used for debug
-      foutput = $fopen("results.txt");
-      clk = 1;
-      rstn = 1;
-      #5 ;
-      rstn = 0;
-      #20 ;
-      rstn = 1;
-      #1000 ;
-      reg_sel = 7;
-   end
-   
-    always begin
-    #(50) clk = ~clk;
-	   
-    if (clk == 1'b1) begin
-      if ((counter == 1000) || (U_SCCOMP.U_SCPU.PC_out=== 32'hxxxxxxxx)) begin
-        $fclose(foutput);
-        $stop;
-      end
-      else begin
-        if (U_SCCOMP.PC == 32'h00000048) begin
-          counter = counter + 1;
-          $fdisplay(foutput, "pc:\t %h", U_SCCOMP.PC);
-          $fdisplay(foutput, "instr:\t\t %h", U_SCCOMP.instr);
-          $fdisplay(foutput, "rf00-03:\t %h %h %h %h", 0, U_SCCOMP.U_SCPU.U_RF.rf[1], U_SCCOMP.U_SCPU.U_RF.rf[2], U_SCCOMP.U_SCPU.U_RF.rf[3]);
-          $fdisplay(foutput, "rf04-07:\t %h %h %h %h", U_SCCOMP.U_SCPU.U_RF.rf[4], U_SCCOMP.U_SCPU.U_RF.rf[5], U_SCCOMP.U_SCPU.U_RF.rf[6], U_SCCOMP.U_SCPU.U_RF.rf[7]);
-          $fdisplay(foutput, "rf08-11:\t %h %h %h %h", U_SCCOMP.U_SCPU.U_RF.rf[8], U_SCCOMP.U_SCPU.U_RF.rf[9], U_SCCOMP.U_SCPU.U_RF.rf[10], U_SCCOMP.U_SCPU.U_RF.rf[11]);
-          $fdisplay(foutput, "rf12-15:\t %h %h %h %h", U_SCCOMP.U_SCPU.U_RF.rf[12], U_SCCOMP.U_SCPU.U_RF.rf[13], U_SCCOMP.U_SCPU.U_RF.rf[14], U_SCCOMP.U_SCPU.U_RF.rf[15]);
-          $fdisplay(foutput, "rf16-19:\t %h %h %h %h", U_SCCOMP.U_SCPU.U_RF.rf[16], U_SCCOMP.U_SCPU.U_RF.rf[17], U_SCCOMP.U_SCPU.U_RF.rf[18], U_SCCOMP.U_SCPU.U_RF.rf[19]);
-          $fdisplay(foutput, "rf20-23:\t %h %h %h %h", U_SCCOMP.U_SCPU.U_RF.rf[20], U_SCCOMP.U_SCPU.U_RF.rf[21], U_SCCOMP.U_SCPU.U_RF.rf[22], U_SCCOMP.U_SCPU.U_RF.rf[23]);
-          $fdisplay(foutput, "rf24-27:\t %h %h %h %h", U_SCCOMP.U_SCPU.U_RF.rf[24], U_SCCOMP.U_SCPU.U_RF.rf[25], U_SCCOMP.U_SCPU.U_RF.rf[26], U_SCCOMP.U_SCPU.U_RF.rf[27]);
-          $fdisplay(foutput, "rf28-31:\t %h %h %h %h", U_SCCOMP.U_SCPU.U_RF.rf[28], U_SCCOMP.U_SCPU.U_RF.rf[29], U_SCCOMP.U_SCPU.U_RF.rf[30], U_SCCOMP.U_SCPU.U_RF.rf[31]);
-          //$fdisplay(foutput, "hi lo:\t %h %h", U_SCCOMP.U_SCPU.U_RF.rf.hi, U_SCCOMP.U_SCPU.U_RF.rf.lo);
-          $fclose(foutput);
-          $stop;
-        end
-        else begin
-          counter = counter + 1;
-//          $display("pc: %h", U_SCCOMP.U_SCPU.PC);
-//          $display("instr: %h", U_SCCOMP.U_SCPU.instr);
-        end
-      end
+    reg clk, rstn;
+
+    integer foutput;
+    integer counter = 0;
+
+    // 实例化你的 CPU 顶层
+    main U_MAIN(
+        .clk(clk),
+        .rstn(rstn)
+    );
+
+    initial begin
+        // 从 dat 文件加载指令到 instruction memory
+        $readmemh("Test_8_Instr.dat", U_MAIN.u_instructions.imem);
+
+        foutput = $fopen("results.txt");
+
+        clk = 1;
+        rstn = 1;
+        #5;
+        rstn = 0;
+        #20;
+        rstn = 1;
     end
-  end //end always
-   
+
+    always begin
+        #50 clk = ~clk;
+
+        if (clk == 1'b1) begin
+            if ((counter == 1000) || (U_MAIN.PC === 32'hxxxxxxxx)) begin
+                $fclose(foutput);
+                $stop;
+            end
+            else begin
+                // 停止地址按测试程序改
+                if (U_MAIN.PC == 32'h00000050) begin
+                    counter = counter + 1;
+
+                    $fdisplay(foutput, "pc:\t\t %h", U_MAIN.PC);
+                    $fdisplay(foutput, "instr:\t\t %h", U_MAIN.instruction);
+
+                    $fdisplay(foutput, "rf00-03:\t %h %h %h %h",
+                        0,
+                        U_MAIN.u_rf.Registers[1],
+                        U_MAIN.u_rf.Registers[2],
+                        U_MAIN.u_rf.Registers[3]
+                    );
+
+                    $fdisplay(foutput, "rf04-07:\t %h %h %h %h",
+                        U_MAIN.u_rf.Registers[4],
+                        U_MAIN.u_rf.Registers[5],
+                        U_MAIN.u_rf.Registers[6],
+                        U_MAIN.u_rf.Registers[7]
+                    );
+
+                    $fdisplay(foutput, "rf08-11:\t %h %h %h %h",
+                        U_MAIN.u_rf.Registers[8],
+                        U_MAIN.u_rf.Registers[9],
+                        U_MAIN.u_rf.Registers[10],
+                        U_MAIN.u_rf.Registers[11]
+                    );
+
+                    $fdisplay(foutput, "rf12-15:\t %h %h %h %h",
+                        U_MAIN.u_rf.Registers[12],
+                        U_MAIN.u_rf.Registers[13],
+                        U_MAIN.u_rf.Registers[14],
+                        U_MAIN.u_rf.Registers[15]
+                    );
+
+                    $fdisplay(foutput, "rf16-19:\t %h %h %h %h",
+                        U_MAIN.u_rf.Registers[16],
+                        U_MAIN.u_rf.Registers[17],
+                        U_MAIN.u_rf.Registers[18],
+                        U_MAIN.u_rf.Registers[19]
+                    );
+
+                    $fdisplay(foutput, "rf20-23:\t %h %h %h %h",
+                        U_MAIN.u_rf.Registers[20],
+                        U_MAIN.u_rf.Registers[21],
+                        U_MAIN.u_rf.Registers[22],
+                        U_MAIN.u_rf.Registers[23]
+                    );
+
+                    $fdisplay(foutput, "rf24-27:\t %h %h %h %h",
+                        U_MAIN.u_rf.Registers[24],
+                        U_MAIN.u_rf.Registers[25],
+                        U_MAIN.u_rf.Registers[26],
+                        U_MAIN.u_rf.Registers[27]
+                    );
+
+                    $fdisplay(foutput, "rf28-31:\t %h %h %h %h",
+                        U_MAIN.u_rf.Registers[28],
+                        U_MAIN.u_rf.Registers[29],
+                        U_MAIN.u_rf.Registers[30],
+                        U_MAIN.u_rf.Registers[31]
+                    );
+
+                    $fclose(foutput);
+                    $stop;
+                end
+                else begin
+                    counter = counter + 1;
+                end
+            end
+        end
+    end
+
 endmodule
